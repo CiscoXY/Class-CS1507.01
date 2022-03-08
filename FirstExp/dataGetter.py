@@ -94,7 +94,7 @@ if __name__ == '__main__':
     head = {  # 模拟浏览器头部信息，向豆瓣服务器发送消息
             "User-Agent": "Mozilla / 5.0(Windows NT 10.0; Win64; x64) AppleWebKit / 537.36(KHTML, like Gecko) Chrome / 112.31.16.81  Safari / 537.36"
         }
-    JsonFile = open("data\\OriginalData.json" , "a" , encoding="utf-8")
+    JsonFile = open("data\\OriginalData_2.json" , "a" , encoding="utf-8")
     
     
     for i in range(9,10):
@@ -104,6 +104,11 @@ if __name__ == '__main__':
 
     
     JsonFile.close()
+    
+    '''
+    注意，因为写入json时由于豆瓣的反爬，我写入了250个字典，但是json.load的解码过程不允许解码多个字典，所以需要用vscode自带的ctrl+f进行替换，将这250个字典都塞入到一个数组当中进行读取，这也是为什么我需要backup的缘故
+    '''
+    
     
 # s = etree.HTML(test.text)
 

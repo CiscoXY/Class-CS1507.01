@@ -5,8 +5,13 @@ import numpy as np
 import time
 import json
 
+
+proxies = {'http' : 'http://' + '112.31.16.81:7890'} #* 整个代理，不行就换了
+#proxies = proxies
+
+
 def getfilminfo(url,headers):
-    r = requests.get(url, headers=headers, timeout=10)
+    r = requests.get(url, proxies = proxies , headers=headers, timeout=10)
     r.raise_for_status()
     r.encoding = 'utf-8'
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -49,12 +54,7 @@ def getfilminfo(url,headers):
         # 片长
         time = infos[7].split(': ')[1].split(' / ')
 
-    if '大陆' in area or '香港' in area or '台湾' in area:
-        area = '中国'
-    if '戛纳' in area:
-        area = '法国'
-
-
+    
     filminfo = {
         "片名" : name , 
         "导演" : director , 
@@ -70,9 +70,9 @@ def getfilminfo(url,headers):
     }
     return filminfo
 
-def getonepagelist(url,headers , infolist):
+def getonepagelist(url, headers , filename):
     try:
-        r = requests.get(url, headers=headers, timeout=10)
+        r = requests.get(url, proxies = proxies , headers=headers, timeout=10)
         r.raise_for_status()
         r.encoding = 'utf-8'
         soup = BeautifulSoup(r.text, 'html.parser')
@@ -83,27 +83,27 @@ def getonepagelist(url,headers , infolist):
             
             print(index+1)
             
-            time.sleep(np.random.uniform(3,8)) #* 睡一会儿
+            time.sleep(np.random.uniform(5,8)) #* 睡一会儿
             
-            infolist.append(getfilminfo(href, headers)) #* 把这个字典塞到infolist中去
+            
+            json.dump(getfilminfo(href, headers) , filename , ensure_ascii=False , indent = 4) #* 写入到数据当中
     except:
             print('getonepagelist error!')
 
 if __name__ == '__main__':
     head = {  # 模拟浏览器头部信息，向豆瓣服务器发送消息
-            "User-Agent": "Mozilla / 5.0(Windows NT 10.0; Win64; x64) AppleWebKit / 537.36(KHTML, like Gecko) Chrome / 80.0.3987.122  Safari / 537.36"
+            "User-Agent": "Mozilla / 5.0(Windows NT 10.0; Win64; x64) AppleWebKit / 537.36(KHTML, like Gecko) Chrome / 112.31.16.81  Safari / 537.36"
         }
-    FilmInformationList = []
-    for i in range(1):
-        print(f'正在爬取第{i}页,请稍等...')
-        url = 'https://movie.douban.com/top250?start={}&filter='.format(i * 25)    
-        getonepagelist(url,head , FilmInformationList)
-
-    JsonFile = open("Sec_exp\\json_file\\test.json" , "a" , encoding="utf-8")
-    for i in FilmInformationList:
-        json.dump(i , JsonFile , ensure_ascii=False , indent = 4)
-    JsonFile.close()
+    JsonFile = open("data\\OriginalData.json" , "a" , encoding="utf-8")
     
+    
+    for i in range(9,10):
+        print(f'正在爬取第{i+1}页,请稍等...')
+        url = 'https://movie.douban.com/top250?start={}&filter='.format(i * 25)    
+        getonepagelist(url , head , JsonFile)
+
+    
+    JsonFile.close()
     
 # s = etree.HTML(test.text)
 

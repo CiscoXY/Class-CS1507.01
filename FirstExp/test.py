@@ -1,8 +1,21 @@
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import statsmodels.formula.api as smf
+import seaborn as sns
 
-a = 5890
-b = 5896
+import json
+import re
 
-k = 5890
-print(17363720/k , 17363720/b , 17363720%k , 17363720%b , 1.736372/3)
+#*----------------------------------------------------------------
+mpl.rcParams['font.sans-serif'] = ['SimHei'] # *允许显示中文
+plt.rcParams['axes.unicode_minus']=False# *允许显示坐标轴负数
+#*----------------------------------------------------------------
+
+params = {'legend.fontsize': 7,}
+
+plt.rcParams.update(params)
+
+
+plt.bar

@@ -17,5 +17,4 @@ params = {'legend.fontsize': 7,}
 
 plt.rcParams.update(params)
 
-
-plt.bar
+print(np.abs((-0.2+np.sqrt(0.04 + 4 * 0.48))/-0.96))

@@ -29,7 +29,9 @@
      </font>
     </property>
     <property name="text">
-     <string>图片显示</string>
+     <string>主要内容为:
+1.对数据的描述性统计，主要通过散点图和直方图来进行判断
+2.对数据的分布的判断，主要为正态分布(毕竟这个最具有参考性)</string>
     </property>
    </widget>
    <widget class="QLabel" name="label1">
@@ -56,7 +58,7 @@
 </string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="Rank_mark">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -132,7 +134,7 @@
      <string>QQ图:</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="Mark_number">
     <property name="geometry">
      <rect>
       <x>250</x>
@@ -151,7 +153,7 @@
      <string>评分评价人数</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="Rank_number">
     <property name="geometry">
      <rect>
       <x>110</x>
@@ -170,7 +172,7 @@
      <string>排名评价人数</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_4">
+   <widget class="QPushButton" name="Mark_number_hist">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -189,7 +191,7 @@
      <string>评分与评价人数</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_5">
+   <widget class="QPushButton" name="types_hist">
     <property name="geometry">
      <rect>
       <x>170</x>
@@ -208,7 +210,7 @@
      <string>影片种类</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_6">
+   <widget class="QPushButton" name="countries_hist">
     <property name="geometry">
      <rect>
       <x>280</x>
@@ -227,7 +229,7 @@
      <string>制作国家</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_7">
+   <widget class="QPushButton" name="languages_hist">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -246,7 +248,7 @@
      <string>影片语言</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_8">
+   <widget class="QPushButton" name="time_hist">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -265,7 +267,7 @@
      <string>上映时间</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_9">
+   <widget class="QPushButton" name="long_hist">
     <property name="geometry">
      <rect>
       <x>230</x>
@@ -284,7 +286,7 @@
      <string>影片时长</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_10">
+   <widget class="QPushButton" name="Mark_QQ">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -303,7 +305,7 @@
      <string>评分</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_11">
+   <widget class="QPushButton" name="Number_QQ">
     <property name="geometry">
      <rect>
       <x>100</x>
@@ -322,7 +324,7 @@
      <string>评价人数</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_12">
+   <widget class="QPushButton" name="Countries_QQ">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -341,7 +343,7 @@
      <string>国家地区</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_13">
+   <widget class="QPushButton" name="Types_QQ">
     <property name="geometry">
      <rect>
       <x>130</x>
@@ -360,7 +362,7 @@
      <string>影片类型</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_14">
+   <widget class="QPushButton" name="Languages_QQ">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -379,7 +381,7 @@
      <string>影片语言</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_15">
+   <widget class="QPushButton" name="Time_QQ">
     <property name="geometry">
      <rect>
       <x>130</x>

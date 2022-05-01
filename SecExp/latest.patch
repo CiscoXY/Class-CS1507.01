@@ -1,0 +1,337 @@
+diff --git a/SecExp/main.py b/SecExp/main.py
+index 4048e6e..30fd04c 100644
+--- a/SecExp/main.py
++++ b/SecExp/main.py
+@@ -20,10 +20,6 @@ import torchvision.transforms as transforms
+ import torchvision.datasets as datasets
+ import torchvision.models as models
+ 
+-import torch.utils.tensorboard as tensorboard
+-
+-from typing import Any, Callable, cast, Dict, List, Optional, Tuple
+-
+ model_names = sorted(name for name in models.__dict__
+     if name.islower() and not name.startswith("__")
+     and callable(models.__dict__[name]))
+@@ -31,16 +27,13 @@ model_names = sorted(name for name in models.__dict__
+ parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+ parser.add_argument('data', metavar='DIR', default='imagenet',
+                     help='path to dataset (default: imagenet)')
+-
+ parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
+                     choices=model_names,
+                     help='model architecture: ' +
+                         ' | '.join(model_names) +
+                         ' (default: resnet18)')
+-
+ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+                     help='number of data loading workers (default: 4)')
+-
+ parser.add_argument('--epochs', default=90, type=int, metavar='N',
+                     help='number of total epochs to run')
+ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
+@@ -86,57 +79,6 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
+ best_acc1 = 0
+ 
+ 
+-
+-
+-
+-## 更改开始的地方:
+-LabelList = os.listdir(r'tiny_imagenet\train') # 获取train集下面的文件夹名list
+-f = open('tiny_imagenet\\val' + '\\val_annotations.txt' , 'r') # 打开文件
+-txt = []
+-for line in f:
+-    txt.append(line.split())  # 获得图片的信息组成的list
+-f.close()
+-new_label_mapping = []
+-for index , text in enumerate(txt):
+-    new_label_mapping.append([ text[0], LabelList.index(text[1])]) #获得val图片名称所对应的train文件夹名称所对应的index，也就是需要替换的标签，这是一个二维list
+-new_label_mapping = dict(new_label_mapping) # 构建新的映射，也就是字典
+-    
+-def target_transformfunction(target):
+-    return new_label_mapping[target]
+-
+-
+-class valImageFolder(datasets.ImageFolder):
+-    def __init__(
+-            self,
+-            root: str,
+-            transform: Optional[Callable] = None,
+-            target_transform: Optional[Callable] = None,
+-            Original_name = False , # 这个参数主要用于找出判断不同的照片，为的是任务5，默认为不显示，也就是只返回映射后的标签
+-    ):
+-        super(valImageFolder, self).__init__(root, transform, target_transform) # 根据下面的具体，我们只需要前三个参数就够了
+-        self.imgs = self.samples
+-        self.Original_name = Original_name
+-    def __getitem__(self, index: int) -> Tuple[Any, Any]: # 覆写一下__getitem__这个方法
+-        """
+-        Args:
+-            index (int): Index
+-
+-        Returns:
+-            tuple: (sample, target) where target is class_index of the target class.
+-        """
+-        path, target = self.samples[index]
+-        target = path[25:] #target调整为这个图片的名称
+-        if (self.Original_name == True):
+-            picname = target
+-        else:
+-            picname = None
+-        sample = self.loader(path)
+-        if self.transform is not None:
+-            sample = self.transform(sample)
+-        if self.target_transform is not None:
+-            target= self.target_transform(target)
+-        return sample, target , picname# 如果这么参数为Ture,那么picname不是None，而是这个文件的文件名
+-## 更改完成
+ def main():
+     args = parser.parse_args()
+ 
+@@ -195,8 +137,6 @@ def main_worker(gpu, ngpus_per_node, args):
+     else:
+         print("=> creating model '{}'".format(args.arch))
+         model = models.__dict__[args.arch]()
+-        fc_features = model.fc.in_features   #提取最后一层的参数
+-        model.fc = nn.Linear(fc_features, 200) # 给他更改成200个类别
+ 
+     if not torch.cuda.is_available():
+         print('using CPU, this will be slow')
+@@ -266,14 +206,14 @@ def main_worker(gpu, ngpus_per_node, args):
+ 
+     # Data loading code
+     traindir = os.path.join(args.data, 'train')
+-    valdir = os.path.join(args.data, 'val') # 这俩东西是个path,=
++    valdir = os.path.join(args.data, 'val')
+     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+-                                    std=[0.229, 0.224, 0.225])
++                                     std=[0.229, 0.224, 0.225])
+ 
+-    train_dataset = datasets.ImageFolder(  # 这是一系列可迭代的数据对象
+-        traindir, #打进来一个path
+-        transforms.Compose([  #对这个path里面的数据进行的操作
+-            #transforms.RandomResizedCrop(224), 不需要随机裁剪
++    train_dataset = datasets.ImageFolder(
++        traindir,
++        transforms.Compose([
++            transforms.RandomResizedCrop(224),
+             transforms.RandomHorizontalFlip(),
+             transforms.ToTensor(),
+             normalize,
+@@ -288,48 +228,29 @@ def main_worker(gpu, ngpus_per_node, args):
+         train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+ 
+-    val_dataset = valImageFolder(valdir, transforms.Compose([ # 我也给他弄成一个可迭代的对象
+-            #transforms.Resize(256), 不需要随机裁剪和尺寸转化
+-            #transforms.CenterCrop(224), 
++    val_loader = torch.utils.data.DataLoader(
++        datasets.ImageFolder(valdir, transforms.Compose([
++            transforms.Resize(256),
++            transforms.CenterCrop(224),
+             transforms.ToTensor(),
+             normalize,
+-        ]) , target_transform=target_transformfunction)
+-    
+-    val_loader = torch.utils.data.DataLoader(       #验证的数据集 结构跟训练数据集是一样的
+-        val_dataset,
+-        batch_size=args.batch_size, shuffle=False,  #批训练数据个数=256
++        ])),
++        batch_size=args.batch_size, shuffle=False,
+         num_workers=args.workers, pin_memory=True)
+-    
++
+     if args.evaluate:
+-        val_dataset = valImageFolder(valdir, transforms.Compose([
+-            transforms.ToTensor(),
+-            normalize,
+-        ]) , target_transform=target_transformfunction , Original_name = True)
+-        val_loader = torch.utils.data.DataLoader(       #验证的数据集 结构跟训练数据集是一样的
+-        val_dataset,
+-        batch_size=args.batch_size, shuffle=False,  #批训练数据个数=256
+-        num_workers=args.workers, pin_memory=True)
+-        validate(val_loader, model, criterion, args ,None , None , different = True)
++        validate(val_loader, model, criterion, args)
+         return
+-    
+-    #TODO 生成一张假的图片，输入到网络去看效果
+-    #images = torch.randn(64, 3, 7, 7)
+-    #graphwriter = tensorboard.SummaryWriter(comment = '_graph') # 绘制结构的writer
+-    #graphwriter.add_graph(model , input_to_model = images)
+-    #graphwriter.close()   # 关掉这个writer，写一张图就够了
+-    #TODO 建立横轴为epoch，纵轴为准确率或者loss的writer
+-    epoch_paramwriter = tensorboard.SummaryWriter(log_dir = 'runs/total_epoch_information') # 观察loss，精准度等等的参数,跨度为1个epoch记录一次
+-    
++
+     for epoch in range(args.start_epoch, args.epochs):
+         if args.distributed:
+             train_sampler.set_epoch(epoch)
+ 
+-        
+         # train for one epoch
+-        train(train_loader, model, criterion, optimizer, epoch, args , epoch_paramwriter) # 增加了一个参数，writer，方便传入上面的epoch_paramwriter
++        train(train_loader, model, criterion, optimizer, epoch, args)
+ 
+         # evaluate on validation set
+-        acc1 = validate(val_loader, model, criterion, args , epoch_paramwriter , epoch)# 增加了2个参数，writer，方便传入上面的epoch_paramwriter , epoch,方便记录
++        acc1 = validate(val_loader, model, criterion, args)
+         
+         scheduler.step()
+ 
+@@ -348,10 +269,9 @@ def main_worker(gpu, ngpus_per_node, args):
+                 'optimizer' : optimizer.state_dict(),
+                 'scheduler' : scheduler.state_dict()
+             }, is_best)
+-    epoch_paramwriter.close()
+-    
+ 
+-def train(train_loader, model, criterion, optimizer, epoch, args , writer):
++
++def train(train_loader, model, criterion, optimizer, epoch, args):
+     batch_time = AverageMeter('Time', ':6.3f')
+     data_time = AverageMeter('Data', ':6.3f')
+     losses = AverageMeter('Loss', ':.4e')
+@@ -366,9 +286,6 @@ def train(train_loader, model, criterion, optimizer, epoch, args , writer):
+     model.train()
+ 
+     end = time.time()
+-    
+-    in_one_epoch_parameterwriter = tensorboard.SummaryWriter(log_dir='runs/epoch'+str(epoch)+'_parameters') #对于不同的epoch，绘制针对这个epoch的图像
+-    
+     for i, (images, target) in enumerate(train_loader):
+         # measure data loading time
+         data_time.update(time.time() - end)
+@@ -377,23 +294,16 @@ def train(train_loader, model, criterion, optimizer, epoch, args , writer):
+             images = images.cuda(args.gpu, non_blocking=True)
+         if torch.cuda.is_available():
+             target = target.cuda(args.gpu, non_blocking=True)
+-        
++
+         # compute output
+         output = model(images)
+         loss = criterion(output, target)
+-        
++
+         # measure accuracy and record loss
+         acc1, acc5 = accuracy(output, target, topk=(1, 5))
+         losses.update(loss.item(), images.size(0))
+         top1.update(acc1[0], images.size(0))
+         top5.update(acc5[0], images.size(0))
+-        
+-        in_one_epoch_parameterwriter.add_scalar('losses/current_loss', losses.val, i) # 绘制点(i , losses.val)
+-        in_one_epoch_parameterwriter.add_scalar('losses/average_loss_tillnow', losses.avg, i)# 绘制点(i , losses.avarage)
+-        in_one_epoch_parameterwriter.add_scalar('accuracy/top1_current', top1.val, i)
+-        in_one_epoch_parameterwriter.add_scalar('accuracy/top1_average', top1.avg, i)
+-        in_one_epoch_parameterwriter.add_scalar('accuracy/top5_current', top5.val, i)
+-        in_one_epoch_parameterwriter.add_scalar('accuracy/top5_average', top5.avg, i)
+ 
+         # compute gradient and do SGD step
+         optimizer.zero_grad()
+@@ -406,17 +316,9 @@ def train(train_loader, model, criterion, optimizer, epoch, args , writer):
+ 
+         if i % args.print_freq == 0:
+             progress.display(i)
+-            
+-    in_one_epoch_parameterwriter.close()# 每个epoch单独绘制一个，所以要关闭
+-    
+-    writer.add_scalar('train/losses/current_epoch' , losses.val , epoch)
+-    writer.add_scalar('train/losses/avarage_epoch_tillnow' , losses.avg , epoch)
+-    writer.add_scalar('train/accuracy/top1_current_epoch', top1.val, epoch)
+-    writer.add_scalar('train/accuracy/top1_average_epoch', top1.avg, epoch)
+-    writer.add_scalar('train/accuracy/top5_current_epoch', top5.val, epoch)
+-    writer.add_scalar('train/accuracy/top5_average_epoch', top5.avg, epoch)
+-
+-def validate(val_loader, model, criterion, args , writer , epoch , different = False): # 默认不找不同，如果需要找不同，那么就是任务5
++
++
++def validate(val_loader, model, criterion, args):
+     batch_time = AverageMeter('Time', ':6.3f', Summary.NONE)
+     losses = AverageMeter('Loss', ':.4e', Summary.NONE)
+     top1 = AverageMeter('Acc@1', ':6.2f', Summary.AVERAGE)
+@@ -431,8 +333,7 @@ def validate(val_loader, model, criterion, args , writer , epoch , different = F
+ 
+     with torch.no_grad():
+         end = time.time()
+-        count = 0 # 到3就截止，因为只需要找10张就可以，我们最多最多需要3*256张
+-        for i, (images, target , picname) in enumerate(val_loader):
++        for i, (images, target) in enumerate(val_loader):
+             if args.gpu is not None:
+                 images = images.cuda(args.gpu, non_blocking=True)
+             if torch.cuda.is_available():
+@@ -441,20 +342,7 @@ def validate(val_loader, model, criterion, args , writer , epoch , different = F
+             # compute output
+             output = model(images)
+             loss = criterion(output, target)
+-            
+-            
+-            if(different and count == 0):
+-                _, pred = output.topk(5, 1, True, True)
+-                pred = pred.t() # 转置了一下
+-                correct = pred.eq(target.view(1, -1).expand_as(pred))
+-                correct = correct.t() # 再转置回来
+-                count += 1 # 找到一张了
+-                print(picname) # 如果找不同那个需要是True，那么如果output不是target，那么输出这个文件名，以及target和对应的output
+-                print(target)
+-                for i in correct:
+-                    print(i)  # 上面一堆是打印出来这些判断，认为进行挑选
+-            
+-            
++
+             # measure accuracy and record loss
+             acc1, acc5 = accuracy(output, target, topk=(1, 5))
+             losses.update(loss.item(), images.size(0))
+@@ -463,28 +351,20 @@ def validate(val_loader, model, criterion, args , writer , epoch , different = F
+ 
+             # measure elapsed time
+             batch_time.update(time.time() - end)
+-            end = time.time() 
++            end = time.time()
+ 
+             if i % args.print_freq == 0:
+                 progress.display(i)
+ 
+         progress.display_summary()
+-    if(writer is not None and epoch is not None):
+-        writer.add_scalar('val/losses/current_epoch' , losses.val , epoch)
+-        writer.add_scalar('val/losses/avarage_epoch_tillnow' , losses.avg , epoch)
+-        writer.add_scalar('val/accuracy/top1_current_epoch', top1.val, epoch)
+-        writer.add_scalar('val/accuracy/top1_average_epoch', top1.avg, epoch)
+-        writer.add_scalar('val/accuracy/top5_current_epoch', top5.val, epoch)
+-        writer.add_scalar('val/accuracy/top5_average_epoch', top5.avg, epoch)
++
+     return top1.avg
+ 
+ 
+-def save_checkpoint(state, is_best, filename='checkpoint1.pth.tar'):  #TODO 到时候记得改一下checkpoint的名字
++def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+     torch.save(state, filename)
+     if is_best:
+         shutil.copyfile(filename, 'model_best.pth.tar')
+-    if state['epoch']%4 == 0:
+-        torch.save(state , 'checkpoint' + '_epoch' + str(state['epoch']) + '.pth.tar')
+ 
+ class Summary(Enum):
+     NONE = 0
+@@ -513,7 +393,7 @@ class AverageMeter(object):
+         self.avg = self.sum / self.count
+ 
+     def __str__(self):
+-        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})' #所以第一个是当前的value，括号里面的是平均值
++        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+         return fmtstr.format(**self.__dict__)
+     
+     def summary(self):
+@@ -559,9 +439,10 @@ def accuracy(output, target, topk=(1,)):
+         maxk = max(topk)
+         batch_size = target.size(0)
+ 
+-        _, pred = output.topk(maxk, 1, True, True) # 获得前maxk个类别得分最高的项，也就是batch_size x maxk的矩阵，每一行的数值降序排列 , 每个数值就是原始数据第k大的数值对应的的index值
+-        pred = pred.t() # 转置了一下
+-        correct = pred.eq(target.view(1, -1).expand_as(pred)) # 得到的预测是否和真实值相等，形状为maxk x batch_size 其中ij元素表示第j个训练元的第i个相像的结果是否是真实值
++        _, pred = output.topk(maxk, 1, True, True)
++        pred = pred.t()
++        correct = pred.eq(target.view(1, -1).expand_as(pred))
++
+         res = []
+         for k in topk:
+             correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)

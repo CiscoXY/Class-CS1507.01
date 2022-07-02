@@ -1,0 +1,48 @@
+----------------- Options ---------------
+                    batch: 4                             
+                    beta1: 0.0                           
+                    beta2: 0.99                          
+       channel_multiplier: 2                             
+          checkpoints_dir: checkpoint                    
+             d_pretrained: pretrained\stylegan2-cat\netD.pth	[default: ]
+              d_reg_every: 16                            
+           dataroot_image: D:\Github_relate\data_sets\cat\data	[default: None]
+          dataroot_sketch: D:\Github_relate\data_sets\sketch\by_author\cat	[default: None]
+           diffaug_policy: translation                   	[default: ]
+             disable_eval: True                          	[default: False]
+             display_freq: 500                           	[default: 2500]
+          display_winsize: 400                           
+      dsketch_no_pretrain: False                         
+               eval_batch: 50                            
+                 eval_dir: None                          
+                eval_freq: 3000                          	[default: 5000]
+             g_pretrained: pretrained\stylegan2-cat\netG.pth	[default: ]
+                 gan_mode: softplus                      
+                  isTrain: True                          	[default: None]
+                  l_image: 0.7                           	[default: 0]
+                 l_weight: 0                             
+       latent_avg_samples: 8192                          
+                       lr: 0.002                         
+                   lr_mlp: 0.01                          
+                max_epoch: 1000000                       
+                 max_iter: 150000                        	[default: 75001]
+                   mixing: 0.9                           
+                    n_mlp: 8                             
+                     name: no_pretrained_teaser_cat_augment	[default: None]
+          no_d_regularize: False                         
+                  no_html: False                         
+                 no_wandb: True                          	[default: False]
+            optim_param_g: style                         
+         photosketch_path: ./pretrained/photosketch.pth  
+               print_freq: 100                           
+                       r1: 10                            
+           reduce_visuals: False                         
+              resume_iter: None                          
+                save_freq: 1000                          	[default: 2500]
+                     size: 256                           
+           sketch_channel: 1                             
+           transform_fake: toSketch,to3ch                
+           transform_real: to3ch                         
+                  use_cpu: False                         
+                    z_dim: 512                           
+----------------- End -------------------
